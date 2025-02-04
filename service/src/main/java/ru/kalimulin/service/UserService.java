@@ -21,4 +21,6 @@ public interface UserService {
     UserResponseDTO getUserByEmail(String email);
 
     void deleteUserByEmail(String email);
+
+    UserResponseDTO upgradeToPremium(String email);
 }

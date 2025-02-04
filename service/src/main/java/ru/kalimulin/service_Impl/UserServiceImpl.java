@@ -1,10 +1,13 @@
 package ru.kalimulin.service_Impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kalimulin.custum_exceptions.*;
+import ru.kalimulin.custum_exceptions.userException.*;
+import ru.kalimulin.custum_exceptions.roleException.RoleNotFoundException;
 import ru.kalimulin.entity_dto.userDTO.*;
 import ru.kalimulin.mappers.userMapper.UserMapper;
 import ru.kalimulin.models.Role;
@@ -19,12 +22,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository,
@@ -119,7 +124,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if (userUpdateDTO.getEmail() != null) {
-            if(userRepository.findByEmail(userUpdateDTO.getEmail()).isPresent()) {
+            if (userRepository.findByEmail(userUpdateDTO.getEmail()).isPresent()) {
                 throw new UserAlreadyExistsException("Email уже используется");
             }
             user.setEmail(userUpdateDTO.getEmail());
@@ -166,5 +171,45 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с таким email " + email + " не найден"));
 
         userRepository.delete(user);
+    }
+
+    @Transactional
+    @Override
+    public UserResponseDTO upgradeToPremium(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с таким email " + email + " не найден"));
+
+        boolean isAlreadyPremium = user.getRoles().stream()
+                .anyMatch(role -> role.getRoleName() == RoleName.PREMIUM);
+
+        if (isAlreadyPremium) {
+            throw new RuntimeException("Вы уже имеете статус PREMIUM");
+        }
+
+        boolean paymentSucces = mockPaymentProcessing(email);
+
+        if (!paymentSucces) {
+            throw new RuntimeException("Ошибка при обработке платежа. Попробуйте снова.");
+        }
+
+        Role premiumRole = roleRepository.findByRoleName(RoleName.PREMIUM)
+                .orElseThrow(() -> new RuntimeException("Роль PREMIUM не найдена"));
+
+        user.getRoles().add(premiumRole);
+        userRepository.save(user);
+
+        logger.info("Пользователь {} успешно получил PREMIUM статус.", email);
+        return userMapper.toUserResponseDTO(user);
+    }
+
+    /**
+     * Сервис-заглушка (симуляция платежной системы)
+     *
+     * @param email электронная почта пользователя
+     * @return всегда возвращает true
+     */
+    private boolean mockPaymentProcessing(String email) {
+        logger.info("Обработка платежа для пользователя {}", email);
+        return true;
     }
 }

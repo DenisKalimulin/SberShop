@@ -13,9 +13,9 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("E-Shop API")
+                        .title("SberShop API")
                         .version("1.0")
-                        .description("API для интернет-магазина")
+                        .description("API для маркетплейса")
                         .contact(new Contact()
                                 .name("Denis")
                                 .email("deniskalimulin@mail.ru"))

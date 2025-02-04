@@ -8,7 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import ru.kalimulin.custum_exceptions.UnauthorizedException;
+import ru.kalimulin.custum_exceptions.userException.UnauthorizedException;
 import ru.kalimulin.entity_dto.userDTO.LoginRequestDTO;
 import ru.kalimulin.entity_dto.userDTO.LoginResponseDTO;
 import ru.kalimulin.entity_dto.userDTO.UserRegistrationDTO;

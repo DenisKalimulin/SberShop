@@ -22,7 +22,6 @@ public class ListingResponseDTO {
     private ListingStatus status;
     private String brand;
     private String imageUrl;
-
     private String sellerName;
     private String categoryName;
 }

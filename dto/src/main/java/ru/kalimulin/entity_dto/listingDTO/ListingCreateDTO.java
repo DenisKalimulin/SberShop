@@ -1,5 +1,7 @@
 package ru.kalimulin.entity_dto.listingDTO;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,6 +22,7 @@ public class ListingCreateDTO {
     @NotBlank(message = "Название товара не может быть пустым")
     private String title;
 
+
     @NotBlank(message = "Описание товара не может быть пустым")
     private String description;
 
@@ -28,9 +31,9 @@ public class ListingCreateDTO {
     private BigDecimal price;
 
     @NotNull(message = "Статус не может быть пустым")
-    private ListingStatus status;
+    @Builder.Default
+    private ListingStatus status = ListingStatus.ACTIVE;
 
-    @Size(min = 0, max = 256, message = "Название бренда не должно превышать 256 символов")
     private String brand;
 
     private String imageUrl;

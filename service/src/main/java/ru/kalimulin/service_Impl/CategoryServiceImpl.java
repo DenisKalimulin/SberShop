@@ -3,8 +3,8 @@ package ru.kalimulin.service_Impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kalimulin.custum_exceptions.CategoryAlreadyExistsException;
-import ru.kalimulin.custum_exceptions.CategoryNotFoundException;
+import ru.kalimulin.custum_exceptions.categoryException.CategoryAlreadyExistsException;
+import ru.kalimulin.custum_exceptions.categoryException.CategoryNotFoundException;
 import ru.kalimulin.entity_dto.categoryDTO.CategoryCreateDTO;
 import ru.kalimulin.entity_dto.categoryDTO.CategoryResponseDTO;
 import ru.kalimulin.entity_dto.categoryDTO.CategoryUpdateDTO;
@@ -82,6 +82,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteCategory(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryNotFoundException("Категория c id " + id + " не найдена"));
 
+        categoryRepository.delete(category);
     }
 }

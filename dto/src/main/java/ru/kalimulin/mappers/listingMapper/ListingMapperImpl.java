@@ -1,14 +1,18 @@
 package ru.kalimulin.mappers.listingMapper;
 
+import org.springframework.stereotype.Component;
 import ru.kalimulin.entity_dto.listingDTO.ListingCreateDTO;
 import ru.kalimulin.entity_dto.listingDTO.ListingResponseDTO;
+import ru.kalimulin.models.Category;
 import ru.kalimulin.models.Listing;
+import ru.kalimulin.models.User;
+import ru.kalimulin.util.ListingStatus;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Component
 public class ListingMapperImpl implements ListingMapper {
-    @Override
+
     public ListingResponseDTO toListingResponseDTO(Listing listing) {
         if (listing == null) {
             return null;
@@ -23,35 +27,22 @@ public class ListingMapperImpl implements ListingMapper {
                 .status(listing.getStatus())
                 .brand(listing.getBrand())
                 .imageUrl(listing.getImageUrl())
-                .sellerName(listing.getSeller().getUserName())
-                .categoryName(listing.getCategory().getName())
+                .sellerName(listing.getSeller() != null ? listing.getSeller().getUserName() : null)
+                .categoryName(listing.getCategory() != null ? listing.getCategory().getName() : null)
                 .build();
     }
 
     @Override
-    public Listing toListing(ListingCreateDTO listingCreateDTO) {
-        if (listingCreateDTO == null) {
-            return null;
-        }
-
+    public Listing toListing(ListingCreateDTO listingCreateDTO, User user, Category category) {
         return Listing.builder()
                 .title(listingCreateDTO.getTitle())
                 .description(listingCreateDTO.getDescription())
                 .price(listingCreateDTO.getPrice())
-                .status(listingCreateDTO.getStatus())
+                .status(listingCreateDTO.getStatus() != null ? listingCreateDTO.getStatus() : ListingStatus.ACTIVE)
                 .brand(listingCreateDTO.getBrand())
                 .imageUrl(listingCreateDTO.getImageUrl())
+                .seller(user)
+                .category(category)
                 .build();
-    }
-
-    @Override
-    public List<ListingResponseDTO> toListingResponseDTOList(List<Listing> listing) {
-        if (listing == null || listing.isEmpty()) {
-            return List.of();
-        }
-
-        return listing.stream()
-                .map(this::toListingResponseDTO)
-                .collect(Collectors.toList());
     }
 }

@@ -1,8 +1,10 @@
 package ru.kalimulin.specification;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
-import ru.kalimulin.models.Category;
 import ru.kalimulin.models.Listing;
 
 import java.math.BigDecimal;
@@ -10,27 +12,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ListingSpecification {
-    public static Specification<Listing> filterBy(String title, Category category, BigDecimal minPrice, BigDecimal maxPrice) {
-        return (root, query, criteriaBuilder) -> {
+    public static Specification<Listing> filterBy(String title, String category, BigDecimal minPrice, BigDecimal maxPrice) {
+        return (Root<Listing> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (title != null && !title.isEmpty()) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + title.toLowerCase() + "%"));
+            if (title != null && !title.trim().isEmpty()) {
+                predicates.add(cb.like(cb.lower(root.get("title")), "%" + title.toLowerCase() + "%"));
             }
 
-            if (category != null) {
-                predicates.add(criteriaBuilder.equal(root.get("category"), category));
+            if (category != null && !category.trim().isEmpty()) {
+                predicates.add(cb.equal(root.join("category").get("name"), category));
             }
 
-            if (minPrice != null && maxPrice != null) {
-                predicates.add(criteriaBuilder.between(root.get("price"), minPrice, maxPrice));
-            } else if (minPrice != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"), minPrice));
-            } else if (maxPrice != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice));
+            if (minPrice != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), minPrice));
             }
 
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            if (maxPrice != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("price"), maxPrice));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

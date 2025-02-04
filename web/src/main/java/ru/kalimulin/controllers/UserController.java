@@ -8,10 +8,9 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.kalimulin.custum_exceptions.UnauthorizedException;
+import ru.kalimulin.custum_exceptions.userException.UnauthorizedException;
 import ru.kalimulin.entity_dto.userDTO.UserResponseDTO;
 import ru.kalimulin.entity_dto.userDTO.UserUpdateDTO;
 import ru.kalimulin.service.UserService;
@@ -47,6 +46,25 @@ public class UserController {
         UserResponseDTO updatedUser = userService.updateUser(email, userUpdateDTO);
         logger.info("Профиль пользователя с email {} был успешно обновлен", updatedUser.getEmail());
 
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @Operation(summary = "Купить PREMIUM", description = "Позволяет пользователю получить PREMIUM статус (заглушка)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Статус PREMIUM успешно назначен"),
+            @ApiResponse(responseCode = "401", description = "Пользователь не авторизован"),
+            @ApiResponse(responseCode = "400", description = "Пользователь уже имеет PREMIUM статус"),
+            @ApiResponse(responseCode = "500", description = "Ошибка при обработке платежа")
+    })
+    @PostMapping("/me/upgrade")
+    public ResponseEntity<UserResponseDTO> upgradeToPremium(HttpSession session) {
+        String email = (String) session.getAttribute("userEmail");
+        if (email == null) {
+            throw new UnauthorizedException("Вы не авторизованы. Войдите в систему!");
+        }
+
+        logger.info("Пользователь {} запрашивает PREMIUM статус", email);
+        UserResponseDTO updatedUser = userService.upgradeToPremium(email);
         return ResponseEntity.ok(updatedUser);
     }
 

@@ -1,4 +1,4 @@
-package ru.kalimulin.custum_exceptions;
+package ru.kalimulin.exception_handler;
 
 public class ErrorResponse {
 
