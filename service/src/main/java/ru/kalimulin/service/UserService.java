@@ -1,5 +1,6 @@
 package ru.kalimulin.service;
 
+import jakarta.servlet.http.HttpSession;
 import ru.kalimulin.entity_dto.userDTO.*;
 
 import java.util.List;
@@ -12,15 +13,14 @@ public interface UserService {
 
     UserResponseDTO addAdminRole(String email);
 
-    UserResponseDTO updateUser(String email, UserUpdateDTO userUpdateDTO);
+    UserResponseDTO updateUser(HttpSession session, UserUpdateDTO userUpdateDTO);
 
     UserResponseDTO getUserById(Long id);
 
     List<UserResponseDTO> getAllUsers();
 
-    UserResponseDTO getUserByEmail(String email);
+    UserResponseDTO getUserByEmail(HttpSession session);
 
-    void deleteUserByEmail(String email);
+    void deleteUserByEmail(HttpSession session);
 
-    UserResponseDTO upgradeToPremium(String email);
 }

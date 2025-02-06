@@ -9,6 +9,8 @@ import ru.kalimulin.util.ListingStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "listings")
@@ -44,13 +46,16 @@ public class Listing {
     @Column(name = "image_url", nullable = true)
     private String imageUrl;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
+    @ManyToMany(mappedBy = "listings")
+    private List<Favorite> favorites;
 
     @PrePersist
     protected void onCreate() {

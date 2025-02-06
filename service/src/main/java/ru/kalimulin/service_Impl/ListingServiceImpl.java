@@ -27,6 +27,7 @@ import ru.kalimulin.service.ListingService;
 import ru.kalimulin.specification.ListingSpecification;
 import ru.kalimulin.util.ListingStatus;
 import ru.kalimulin.util.RoleName;
+import ru.kalimulin.util.SessionUtils;
 
 import java.math.BigDecimal;
 
@@ -90,7 +91,9 @@ public class ListingServiceImpl implements ListingService {
 
     @Transactional
     @Override
-    public ListingResponseDTO createListing(ListingCreateDTO listingCreateDTO, String userEmail) {
+    public ListingResponseDTO createListing(ListingCreateDTO listingCreateDTO, HttpSession session) {
+        String userEmail = SessionUtils.getUserEmail(session);
+
         logger.info("Создание нового объявления пользователем с email {}", userEmail);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с таким email " + userEmail + " не найден"));
@@ -125,7 +128,7 @@ public class ListingServiceImpl implements ListingService {
     @Transactional
     @Override
     public ListingResponseDTO updateListing(Long id, ListingUpdateDTO listingUpdateDTO, HttpSession session) {
-        String userEmail = (String) session.getAttribute("userEmail");
+        String userEmail = SessionUtils.getUserEmail(session);
         logger.info("Обновление данный в объявлении с id {} пользователем с email {}", id, userEmail);
 
         Listing listing = listingRepository.findById(id)
@@ -175,7 +178,7 @@ public class ListingServiceImpl implements ListingService {
     @Transactional
     @Override
     public ListingResponseDTO changeListingStatus(Long id, ListingStatus newStatus, HttpSession session) {
-        String userEmail = (String) session.getAttribute("userEmail");
+        String userEmail = SessionUtils.getUserEmail(session);
         logger.info("Попытка смены статуса у объявления с id: {} на статус {}", id, newStatus);
 
         Listing listing = listingRepository.findById(id)
@@ -211,7 +214,7 @@ public class ListingServiceImpl implements ListingService {
     @Transactional
     @Override
     public void deleteListing(Long id, HttpSession session) {
-        String userEmail = (String) session.getAttribute("userEmail");
+        String userEmail = SessionUtils.getUserEmail(session);
         logger.info("Удаление объявления с id: {} пользователем с email: {}", id, userEmail);
 
         Listing listing = listingRepository.findById(id)

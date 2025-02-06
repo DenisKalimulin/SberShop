@@ -13,18 +13,24 @@ import org.springframework.web.bind.annotation.*;
 import ru.kalimulin.custum_exceptions.userException.UnauthorizedException;
 import ru.kalimulin.entity_dto.userDTO.UserResponseDTO;
 import ru.kalimulin.entity_dto.userDTO.UserUpdateDTO;
+import ru.kalimulin.entity_dto.walletDTO.WalletResponseDTO;
+import ru.kalimulin.entity_dto.walletDTO.WalletUpdateDTO;
 import ru.kalimulin.service.UserService;
+import ru.kalimulin.service.WalletService;
+import ru.kalimulin.util.SessionUtils;
 
 
 @RestController
 @RequestMapping("shop/users")
 public class UserController {
     private final UserService userService;
+    private final WalletService walletService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, WalletService walletService) {
         this.userService = userService;
+        this.walletService = walletService;
     }
 
     @Operation(summary = "Обновить профиль пользователя", description = "Позволяет обновить данные текущего пользователя")
@@ -36,35 +42,10 @@ public class UserController {
     @PutMapping("/me/update")
     public ResponseEntity<UserResponseDTO> updateUser(@Valid @RequestBody UserUpdateDTO userUpdateDTO,
                                                       HttpSession session) {
-        String email = (String) session.getAttribute("userEmail");
 
-        if (email == null) {
-            logger.warn("Неавторизованный доступ к редактированию профиля");
-            throw new UnauthorizedException("Пользователь не авторизован. Войдите в систему.");
-        }
-
-        UserResponseDTO updatedUser = userService.updateUser(email, userUpdateDTO);
+        UserResponseDTO updatedUser = userService.updateUser(session, userUpdateDTO);
         logger.info("Профиль пользователя с email {} был успешно обновлен", updatedUser.getEmail());
 
-        return ResponseEntity.ok(updatedUser);
-    }
-
-    @Operation(summary = "Купить PREMIUM", description = "Позволяет пользователю получить PREMIUM статус (заглушка)")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Статус PREMIUM успешно назначен"),
-            @ApiResponse(responseCode = "401", description = "Пользователь не авторизован"),
-            @ApiResponse(responseCode = "400", description = "Пользователь уже имеет PREMIUM статус"),
-            @ApiResponse(responseCode = "500", description = "Ошибка при обработке платежа")
-    })
-    @PostMapping("/me/upgrade")
-    public ResponseEntity<UserResponseDTO> upgradeToPremium(HttpSession session) {
-        String email = (String) session.getAttribute("userEmail");
-        if (email == null) {
-            throw new UnauthorizedException("Вы не авторизованы. Войдите в систему!");
-        }
-
-        logger.info("Пользователь {} запрашивает PREMIUM статус", email);
-        UserResponseDTO updatedUser = userService.upgradeToPremium(email);
         return ResponseEntity.ok(updatedUser);
     }
 
@@ -76,17 +57,28 @@ public class UserController {
     })
     @DeleteMapping("/me/delete")
     public ResponseEntity<String> deleteUser(HttpSession session) {
-        String email = (String) session.getAttribute("userEmail");
 
-        if(email == null) {
-            logger.warn("Неавторизованный доступ к удалению профиля");
-            throw new UnauthorizedException("Пользователь не авторизован. Войдите в систему.");
-        }
-
-        userService.deleteUserByEmail(email);
+        userService.deleteUserByEmail(session);
         session.invalidate();
-        logger.info("Пользователь с email {} был успешно удален из системы", email);
+        logger.info("Пользователь с email {} был успешно удален из системы", SessionUtils.getUserEmail(session));
 
         return ResponseEntity.ok("Профиль удален");
     }
+
+    @Operation(summary = "Просмотр кошелька пользователя", description = "Позволяет пользователю увидеть баланс кошелька")
+    @GetMapping("/me/balance")
+    public ResponseEntity<WalletResponseDTO> getUserBalance(HttpSession session) {
+        WalletResponseDTO balance = walletService.getUserWallet(session);
+        logger.info("Просмотр баланса пользователем: {}", SessionUtils.getUserEmail(session));
+        return ResponseEntity.ok(balance);
+    }
+
+    @PostMapping("/me/deposit")
+    public ResponseEntity<String> depositBalance(HttpSession session, @RequestBody WalletUpdateDTO walletUpdateDTO) {
+        walletService.deposit(session, walletUpdateDTO);
+        logger.info("Пользователь {} пополнил баланс на сумму {}", SessionUtils.getUserEmail(session), walletUpdateDTO.getAmount());
+        return ResponseEntity.ok("Баланс успешно пополнен!");
+    }
+
+
 }

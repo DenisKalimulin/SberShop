@@ -20,7 +20,7 @@ public interface ListingService {
 
     Page<ListingResponseDTO> findAllBySeller(String sellerEmail, Pageable pageable);
 
-    ListingResponseDTO createListing(ListingCreateDTO listingCreateDTO, String userEmail);
+    ListingResponseDTO createListing(ListingCreateDTO listingCreateDTO, HttpSession session);
 
     ListingResponseDTO updateListing(Long id, ListingUpdateDTO listingUpdateDTO, HttpSession session);
 

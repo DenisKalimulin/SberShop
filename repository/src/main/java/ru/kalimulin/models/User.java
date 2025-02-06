@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -37,6 +39,19 @@ public class User {
     )
     private Set<Role> roles;
 
-    @OneToMany(mappedBy = "seller", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToMany(mappedBy = "seller", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Listing> listings;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Favorite> favorites;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Wallet wallet;
+
+    @Column(name = "subscription_expiration")
+    private LocalDateTime subscriptionExpiration;
+
+    public boolean isPremiumActive() {
+        return subscriptionExpiration != null && subscriptionExpiration.isAfter(LocalDateTime.now());
+    }
 }

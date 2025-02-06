@@ -16,6 +16,7 @@ import ru.kalimulin.entity_dto.userDTO.UserResponseDTO;
 import ru.kalimulin.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.kalimulin.util.SessionUtils;
 
 
 @RestController
@@ -70,11 +71,7 @@ public class AuthController {
     })
     @PostMapping("/logout")
     public ResponseEntity<String> logoutUser(HttpSession session) {
-        String email = (String) session.getAttribute("userEmail");
-
-        if (email == null) {
-            throw new UnauthorizedException("Пользователь не авторизован. Войдите в систему.");
-        }
+        String email = SessionUtils.getUserEmail(session);
 
         session.invalidate();
 
@@ -90,13 +87,7 @@ public class AuthController {
     })
     @GetMapping("/profile")
     public ResponseEntity<UserResponseDTO> getUserProfile(HttpSession session) {
-        String email = (String) session.getAttribute("userEmail");
-        if (email == null) {
-            logger.warn("Неавторизованный доступ к профилю");
-            throw new UnauthorizedException("Пользователь не авторизован. Войдите в систему.");
-        }
-
-        UserResponseDTO userResponseDTO = userService.getUserByEmail(email);
+        UserResponseDTO userResponseDTO = userService.getUserByEmail(session);
         return ResponseEntity.ok(userResponseDTO);
     }
 }

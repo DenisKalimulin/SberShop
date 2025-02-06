@@ -1,21 +1,24 @@
 package ru.kalimulin.service_Impl;
 
+import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kalimulin.custum_exceptions.userException.*;
 import ru.kalimulin.custum_exceptions.roleException.RoleNotFoundException;
+import ru.kalimulin.custum_exceptions.userException.*;
 import ru.kalimulin.entity_dto.userDTO.*;
 import ru.kalimulin.mappers.userMapper.UserMapper;
 import ru.kalimulin.models.Role;
 import ru.kalimulin.models.User;
 import ru.kalimulin.repositories.RoleRepository;
 import ru.kalimulin.repositories.UserRepository;
+import ru.kalimulin.repositories.WalletRepository;
 import ru.kalimulin.service.UserService;
 import ru.kalimulin.util.RoleName;
+import ru.kalimulin.util.SessionUtils;
 
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +38,7 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(UserRepository userRepository,
                            RoleRepository roleRepository,
                            UserMapper userMapper,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder, WalletRepository walletRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
@@ -115,9 +118,10 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public UserResponseDTO updateUser(String email, UserUpdateDTO userUpdateDTO) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с таким email " + email + " не найден"));
+    public UserResponseDTO updateUser(HttpSession session, UserUpdateDTO userUpdateDTO) {
+        String userEmail = SessionUtils.getUserEmail(session);
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с таким email " + userEmail + " не найден"));
 
         if (userUpdateDTO.getUserName() != null) {
             user.setUserName(userUpdateDTO.getUserName());
@@ -156,60 +160,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO getUserByEmail(String email) {
-        Optional<User> optionalUser = userRepository.findByEmail(email);
+    public UserResponseDTO getUserByEmail(HttpSession session) {
+        String userEmail = SessionUtils.getUserEmail(session);
+        Optional<User> optionalUser = userRepository.findByEmail(userEmail);
         if (optionalUser.isPresent()) {
             return userMapper.toUserResponseDTO(optionalUser.get());
         } else {
-            throw new UserNotFoundException("Пользователь с таким email " + email + " не найден");
+            throw new UserNotFoundException("Пользователь с таким email " + userEmail + " не найден");
         }
     }
 
     @Override
-    public void deleteUserByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с таким email " + email + " не найден"));
+    public void deleteUserByEmail(HttpSession session) {
+        String userEmail = SessionUtils.getUserEmail(session);
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с таким email " + userEmail + " не найден"));
 
         userRepository.delete(user);
-    }
-
-    @Transactional
-    @Override
-    public UserResponseDTO upgradeToPremium(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с таким email " + email + " не найден"));
-
-        boolean isAlreadyPremium = user.getRoles().stream()
-                .anyMatch(role -> role.getRoleName() == RoleName.PREMIUM);
-
-        if (isAlreadyPremium) {
-            throw new RuntimeException("Вы уже имеете статус PREMIUM");
-        }
-
-        boolean paymentSucces = mockPaymentProcessing(email);
-
-        if (!paymentSucces) {
-            throw new RuntimeException("Ошибка при обработке платежа. Попробуйте снова.");
-        }
-
-        Role premiumRole = roleRepository.findByRoleName(RoleName.PREMIUM)
-                .orElseThrow(() -> new RuntimeException("Роль PREMIUM не найдена"));
-
-        user.getRoles().add(premiumRole);
-        userRepository.save(user);
-
-        logger.info("Пользователь {} успешно получил PREMIUM статус.", email);
-        return userMapper.toUserResponseDTO(user);
-    }
-
-    /**
-     * Сервис-заглушка (симуляция платежной системы)
-     *
-     * @param email электронная почта пользователя
-     * @return всегда возвращает true
-     */
-    private boolean mockPaymentProcessing(String email) {
-        logger.info("Обработка платежа для пользователя {}", email);
-        return true;
     }
 }

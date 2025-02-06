@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.kalimulin.custum_exceptions.userException.UnauthorizedException;
 import ru.kalimulin.entity_dto.listingDTO.ListingCreateDTO;
 import ru.kalimulin.entity_dto.listingDTO.ListingResponseDTO;
 import ru.kalimulin.entity_dto.listingDTO.ListingUpdateDTO;
@@ -29,13 +28,8 @@ public class ListingController {
 
     @PostMapping
     public ResponseEntity<ListingResponseDTO> addListing(@RequestBody ListingCreateDTO listingCreateDTO, HttpSession session) {
-        String userEmail = (String) session.getAttribute("userEmail");
 
-        if (userEmail == null) {
-            throw new UnauthorizedException("Вы не авторизованы. Пожалуйста, войдите в систему!");
-        }
-
-        ListingResponseDTO listingResponseDTO = listingService.createListing(listingCreateDTO, userEmail);
+        ListingResponseDTO listingResponseDTO = listingService.createListing(listingCreateDTO, session);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(listingResponseDTO);
     }
