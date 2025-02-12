@@ -3,6 +3,7 @@ package ru.kalimulin.service_Impl;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.kalimulin.custum_exceptions.favoriteException.FavoriteNotFoundException;
 import ru.kalimulin.custum_exceptions.listingException.ListingNotFoundException;
 import ru.kalimulin.entity_dto.listingDTO.ListingResponseDTO;
@@ -40,6 +41,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         this.listingMapper = listingMapper;
     }
 
+    @Transactional
     @Override
     public void addToFavorite(Long listingId, HttpSession session) {
         String userEmail = SessionUtils.getUserEmail(session);
@@ -59,6 +61,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         favoriteRepository.save(favorite);
     }
 
+    @Transactional
     @Override
     public void removeFromFavorites(Long listingId, HttpSession session) {
         String userEmail = SessionUtils.getUserEmail(session);

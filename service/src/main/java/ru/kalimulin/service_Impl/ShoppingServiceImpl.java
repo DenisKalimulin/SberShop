@@ -45,6 +45,7 @@ public class ShoppingServiceImpl implements ShoppingService {
         walletService.transfer(buyer, seller, listing.getPrice());
 
         listing.setStatus(ListingStatus.SOLD);
+        listing.setBuyer(buyer);
         listingRepository.save(listing);
 
     }

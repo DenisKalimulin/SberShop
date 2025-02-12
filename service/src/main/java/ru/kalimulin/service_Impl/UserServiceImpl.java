@@ -170,6 +170,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Transactional
     @Override
     public void deleteUserByEmail(HttpSession session) {
         String userEmail = SessionUtils.getUserEmail(session);

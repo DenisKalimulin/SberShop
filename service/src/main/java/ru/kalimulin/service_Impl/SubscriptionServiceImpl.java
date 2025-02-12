@@ -50,7 +50,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         String userEmail = SessionUtils.getUserEmail(session);
         User user = userRepository.findByEmail(userEmail).get();
 
-        if(user.isPremiumActive()) {
+        if(isPremiumActive(user)) {
             throw new SubscriptionException("У вас уже есть активная PREMIUM подписка!");
         }
 
@@ -86,6 +86,11 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public boolean isSubscriptionActive(HttpSession session) {
         String userEmail = SessionUtils.getUserEmail(session);
         User user = userRepository.findByEmail(userEmail).get();
-        return user.isPremiumActive();
+        return isPremiumActive(user);
+    }
+
+    private boolean isPremiumActive(User user) {
+        return user.getSubscriptionExpiration() != null &&
+                user.getSubscriptionExpiration().isAfter(LocalDateTime.now());
     }
 }

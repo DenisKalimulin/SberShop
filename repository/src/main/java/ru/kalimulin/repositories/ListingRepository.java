@@ -19,4 +19,8 @@ public interface ListingRepository extends JpaRepository<Listing, Long>, JpaSpec
     Page<Listing> findBySeller(User seller, Pageable pageable);
 
     long countBySellerAndStatus(User seller, ListingStatus status);
+
+    boolean existsBySellerAndStatusAndBuyer(User seller, ListingStatus status, User buyer);
+
+
 }

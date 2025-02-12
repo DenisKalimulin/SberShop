@@ -12,7 +12,7 @@ import ru.kalimulin.service.SubscriptionService;
 
 
 @RestController
-@RequestMapping("/subscription")
+@RequestMapping("/shop/subscription")
 public class SubscriptionController {
     private final SubscriptionService subscriptionService;
 

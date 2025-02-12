@@ -11,7 +11,7 @@ import ru.kalimulin.entity_dto.walletDTO.WalletResponseDTO;
 import ru.kalimulin.service.WalletService;
 
 @RestController
-@RequestMapping("/wallet")
+@RequestMapping("/shop/wallet")
 public class WalletController {
     private final WalletService walletService;
 

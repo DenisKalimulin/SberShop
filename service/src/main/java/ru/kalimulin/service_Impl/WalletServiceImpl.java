@@ -50,6 +50,7 @@ public class WalletServiceImpl implements WalletService {
     }
 
 
+    @Transactional
     @Override
     public void transfer(User buyer, User seller, BigDecimal amount) {
         Wallet buyerWallet = walletRepository.findByUser(buyer)

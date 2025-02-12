@@ -1,15 +1,11 @@
 package ru.kalimulin.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.kalimulin.util.ListingStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -56,6 +52,11 @@ public class Listing {
 
     @ManyToMany(mappedBy = "listings")
     private List<Favorite> favorites;
+
+    @ManyToOne
+    @JoinColumn(name = "buyer_id")
+    @ToString.Exclude
+    private User buyer;
 
     @PrePersist
     protected void onCreate() {

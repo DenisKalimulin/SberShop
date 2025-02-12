@@ -78,8 +78,7 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toCategoryResponseDTO(category);
     }
 
-
-
+    @Transactional
     @Override
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)

@@ -234,6 +234,11 @@ public class ListingServiceImpl implements ListingService {
         logger.info("Объявление c id {} успешно удалено", id);
     }
 
+    /**
+     * Метод для подсчета активных объявлений у пользователя
+     * @param seller пользователь у которого считаем объявления со статусом ACTIVE
+     * @param count передаем количество которое нужно отнять (-1) или прибавить (+1)
+     */
     private void updateActiveListingsCount(User seller, int count) {
         logger.info("Обновление счетчика активных объявлений у пользователя с email: {}", seller.getEmail());
         long activeListingCount = listingRepository.countBySellerAndStatus(seller, ListingStatus.ACTIVE);

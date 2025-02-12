@@ -17,6 +17,7 @@ import ru.kalimulin.entity_dto.categoryDTO.CategoryResponseDTO;
 import ru.kalimulin.entity_dto.categoryDTO.CategoryUpdateDTO;
 import ru.kalimulin.entity_dto.userDTO.UserResponseDTO;
 import ru.kalimulin.service.CategoryService;
+import ru.kalimulin.service.ReviewService;
 import ru.kalimulin.service.UserService;
 
 import java.util.List;
@@ -26,12 +27,16 @@ import java.util.List;
 public class AdminController {
     private final UserService userService;
     private final CategoryService categoryService;
+    private final ReviewService reviewService;
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
-    public AdminController(UserService userService, CategoryService categoryService) {
+    public AdminController(UserService userService,
+                           CategoryService categoryService,
+                           ReviewService reviewService) {
         this.userService = userService;
         this.categoryService = categoryService;
+        this.reviewService = reviewService;
     }
 
     @Operation(summary = "Назначить пользователю роль ADMIN", description = "Добавляет роль ADMIN пользователю по email")
@@ -127,5 +132,19 @@ public class AdminController {
 
         logger.info("Категория с id {} уделена ", id);
         return ResponseEntity.ok("Категория удалена");
+    }
+
+    @Operation(summary = "Удалить отзыв", description = "Удаляет отзыв по id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Отзыв успешно удален"),
+            @ApiResponse(responseCode = "404", description = "Отзыв не найден"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещён")
+    })
+    @RoleRequired("ADMIN")
+    @DeleteMapping("/reviews/{id}")
+    public ResponseEntity<String> deleteReview(@PathVariable Long id) {
+        reviewService.deleteReview(id);
+        logger.info("Отзыв с id {} удален", id);
+        return ResponseEntity.ok("Отзыв удален");
     }
 }

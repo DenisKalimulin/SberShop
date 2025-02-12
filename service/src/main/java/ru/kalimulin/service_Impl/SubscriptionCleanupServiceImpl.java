@@ -15,13 +15,12 @@ import ru.kalimulin.util.RoleName;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class SubscriptionCleanupServiceImpl implements SubscriptionCleanupService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private static final Logger logger = LoggerFactory.getLogger(SubscriptionCleanupService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SubscriptionCleanupServiceImpl.class);
 
     @Autowired
     public SubscriptionCleanupServiceImpl(UserRepository userRepository, RoleRepository roleRepository) {
@@ -29,38 +28,28 @@ public class SubscriptionCleanupServiceImpl implements SubscriptionCleanupServic
         this.roleRepository = roleRepository;
     }
 
-
-    @Scheduled(cron = "0 0 0 * * ?") //Запуск каждый день в 00:00
+    @Scheduled(cron = "0 0 0 * * ?") // Запуск каждый день в 00:00
     @Transactional
     @Override
-    public void removeExpiredPremiumO() {
-        List<User> premiumUsers = userRepository.findAll().stream()
-                .filter(User::isPremiumActive)
-                .collect(Collectors.toList());
+    public void removeExpiredPremium() {
+        List<User> expiredUsers = userRepository.findAllBySubscriptionExpirationBefore(LocalDateTime.now());
+
+        if (expiredUsers.isEmpty()) {
+            logger.info("Нет пользователей с истекшей подпиской.");
+            return;
+        }
 
         Role premiumRole = roleRepository.findByRoleName(RoleName.PREMIUM)
                 .orElseThrow(() -> new RuntimeException("Роль PREMIUM не найдена"));
 
-        for (User user : premiumUsers) {
-            if (user.getSubscriptionExpiration().isBefore(LocalDateTime.now())) {
-                user.getRoles().remove(premiumRole);
-                userRepository.save(user);
-                logger.info("Пользователь {} потерял PREMIUM статус", user.getEmail());
-            }
-        }
-    }
-
-    @Scheduled(cron = "0 0 0 * * ?")
-    @Transactional
-    public void removeExpiredSubscriptions() {
-        List<User> expiredUsers = userRepository.findAllBySubscriptionExpirationBefore(LocalDateTime.now());
-
         for (User user : expiredUsers) {
-            user.getRoles().removeIf(role -> role.getRoleName() == RoleName.PREMIUM);
+            user.getRoles().removeIf(role -> role.equals(premiumRole));
             user.setSubscriptionExpiration(null);
+            logger.info("Пользователь {} потерял PREMIUM статус.", user.getEmail());
         }
 
         userRepository.saveAll(expiredUsers);
-        logger.info("Удалены подписки у {} пользователей", expiredUsers.size());
+        logger.info("Удалены PREMIUM подписки у {} пользователей", expiredUsers.size());
     }
 }
+
